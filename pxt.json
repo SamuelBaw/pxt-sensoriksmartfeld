@@ -15,7 +15,8 @@
         "format.ts",
         "gas_bme680.ts",
         "sensoren.ts",
-        "gas_sgp30.ts"
+        "gas_sgp30.ts",
+        "sunlight_si1151.ts"
     ],
     "testFiles": [
         "test.ts"

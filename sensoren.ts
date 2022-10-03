@@ -11,25 +11,7 @@ namespace sensoren {
     let paj7620 = new PAJ7620();
     //let bme680 = new BME680();
     let sgp30 = new SGP30();
-
-    //% group="Potentiometer 101020036"
-    //% block="Prozentzahl |%pin |%led"
-    //% pin.defl=AnalogPin.P2 led.defl=AnalogPin.P16
-    //% subcategory="Restliche Sensoren" weight=10
-    export function potentiometerGibProzent(pin: AnalogPin, led: AnalogPin): number {
-
-        let duration = 0;
-        let RangeInCentimeters = 0;
-        let RangeInPercent = 0;
-
-        RangeInCentimeters = pins.analogReadPin(pin);
-        pins.analogWritePin(led, RangeInCentimeters); //setze LED auf Poti-Board
-        RangeInPercent = RangeInCentimeters * 100 / 1023;
-
-        basic.pause(50);
-        return RangeInPercent;
-    }
-
+    let si1151 = new SI1151();
 
     //% group="Ultraschallsensor 101020010"
     //% block="Distanz in cm |%pin"
@@ -214,4 +196,35 @@ namespace sensoren {
         return sgp30.sgp30_measRead_CO2eq();
     }
 
+    //% group="Potentiometer 101020036"
+    //% block="Prozentzahl |%pin |%led"
+    //% pin.defl=AnalogPin.P2 led.defl=AnalogPin.P16
+    //% subcategory="Restliche Sensoren"
+    export function potentiometerGibProzent(pin: AnalogPin, led: AnalogPin): number {
+
+        let duration = 0;
+        let RangeInCentimeters = 0;
+        let RangeInPercent = 0;
+
+        RangeInCentimeters = pins.analogReadPin(pin);
+        pins.analogWritePin(led, RangeInCentimeters); //setze LED auf Poti-Board
+        RangeInPercent = RangeInCentimeters * 100 / 1023;
+
+        basic.pause(50);
+        return RangeInPercent;
+    }
+
+    /**
+    * init Grove Sunlight module
+    * 
+    */
+    //% block="init sunlight sensor"
+    export function initSunlight(): string {
+        //if (!sgp30) {
+        if (si1151.init())
+        {
+            return "Yes";
+        }
+        return "No";
+    }
 }
