@@ -26,13 +26,7 @@ namespace sensoren {
         pins.analogWritePin(led, RangeInCentimeters); //setze LED auf Poti-Board
         RangeInPercent = RangeInCentimeters * 100 / 1023;
 
-        if (RangeInPercent > 0) {
-            let debugStop = 1;
-
-        }
-
         basic.pause(50);
-
         return RangeInPercent;
     }
 
@@ -58,7 +52,6 @@ namespace sensoren {
         else RangeInCentimeters = distanceBackup;
 
         basic.pause(50);
-
         return RangeInCentimeters;
     }
 
@@ -72,7 +65,6 @@ namespace sensoren {
         motionDetected = pins.digitalReadPin(pin);
 
         basic.pause(50);
-
         return motionDetected;
     }
 
@@ -86,7 +78,6 @@ namespace sensoren {
         fieldDetected = pins.digitalReadPin(pin);
 
         basic.pause(50);
-
         return fieldDetected;
     }
 
@@ -100,7 +91,6 @@ namespace sensoren {
         RangeInAnalog = pins.analogReadPin(pin);
 
         basic.pause(50);
-
         return RangeInAnalog;
     }
 
@@ -114,7 +104,6 @@ namespace sensoren {
         actuationDetected = pins.digitalReadPin(pin);
 
         basic.pause(50);
-
         return actuationDetected;
     }
 
@@ -128,7 +117,6 @@ namespace sensoren {
         objectDetected = pins.digitalReadPin(pin);
 
         basic.pause(50);
-
         return objectDetected;
     }
 
