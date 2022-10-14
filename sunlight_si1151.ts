@@ -116,89 +116,100 @@ namespace sensoren {
     export class SI1151 {
 
         conf: Buffer;
+        writeBuf: Buffer;
 
         /**
            Configures a channel at a given index
         */
 
-        /*private config_channel(index: number) {
-            let len = sizeof(conf);
+        private config_channel(index: number) {
+            //
+            let len = 4;
 
             if (len != 4 || index < 0 || index > 5)
                 return;
 
             let inc = index * len;
 
-            param_set(ParameterAddress.ADCCONFIG_0 + inc, this.conf[0]);
-            param_set(ParameterAddress.ADCSENS_0 + inc, this.conf[1]);
-            param_set(ParameterAddress.ADCPOST_0 + inc, this.conf[2]);
-            param_set(ParameterAddress.MEASCONFIG_0 + inc, this.conf[3]);
-        }*/
+            /*serial.writeLine("conf0 " + this.conf[0]);
+            serial.writeLine("conf1 " + this.conf[1]);
+            serial.writeLine("conf2 " + this.conf[2]);
+            serial.writeLine("conf3 " + this.conf[3]);*/
+
+
+            this.param_set(ParameterAddress.ADCCONFIG_0 + inc, this.conf[0]);
+            this.param_set(ParameterAddress.ADCSENS_0 + inc, this.conf[1]);
+            this.param_set(ParameterAddress.ADCPOST_0 + inc, this.conf[2]);
+            this.param_set(ParameterAddress.MEASCONFIG_0 + inc, this.conf[3]);
+        }
 
         /**
            Writes data over i2c
         */
-        /*private write_data(uint8_t addr, uint8_t * data, size_t len) {
-            Wire.beginTransmission(addr);
-            Wire.write(data, len);
-            Wire.endTransmission();
-        }*/
+        private write_data(len: number) {    //check
+
+            //let buf: Buffer = pins.createBuffer(len+1);
+            //buf = this.writeBuf;
+            pins.i2cWriteBuffer(UnitAddress.DEVICE_ADDRESS, this.writeBuf, false);
+
+        }
 
         /**
            Reads data from a register over i2c
         */
-        /*private read_register(uint8_t addr, uint8_t reg, int bytesOfData): number {  //int
-            int val = -1;
+        private read_register(addr: number, reg: number, bytesOfData: number): number {  //int     //check
 
-            this.write_data(addr, & reg, sizeof(reg));
-            Wire.requestFrom(addr, bytesOfData);
+            let buf: Buffer = pins.createBuffer(bytesOfData);
+            buf[0] = reg;
+            pins.i2cWriteBuffer(addr, buf, false);
+            buf = pins.i2cReadBuffer(addr, 1, false);
+            return buf[0];
 
-            if (Wire.available())
-                val = Wire.read();
-
-            return val;
-        }*/
+        }
 
         /**
            param set as shown in the datasheet
         */
-        /*private param_set(loc: number, val: number) {
-        let packet: Buffer = pins.createBuffer(2);
+        private param_set(loc: number, val: number) {   //eher check
+        //let packet: Buffer = pins.createBuffer(2);
         let r;
         let cmmnd_ctr;
 
         do {
             cmmnd_ctr = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
 
-            packet[0] = RegisterAddress.HOSTIN_0;
-            packet[1] = val;
-            this.write_data(UnitAddress.DEVICE_ADDRESS, packet, sizeof(packet));
+            this.writeBuf = pins.createBuffer(2);
+            this.writeBuf[0] = RegisterAddress.HOSTIN_0;
+            this.writeBuf[1] = val;
+            //serial.writeLine("val= " + val);
+            this.write_data(2);
 
-            packet[0] = RegisterAddress.COMMAND;
-            packet[1] = loc | (0B10 << 6);
-            this.write_data(UnitAddress.DEVICE_ADDRESS, packet, sizeof(packet));
+            this.writeBuf[0] = RegisterAddress.COMMAND;
+            this.writeBuf[1] = loc | (0B10 << 6);
+            //serial.writeLine("loc= " + loc);
+            this.write_data(2);
 
             r = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
         } while (r > cmmnd_ctr);
-        }*/
+        }
 
 
         /**
          param query as shown in the datasheet
         */
-        /*private Si115X:: param_query(uint8_t loc): number{
-            int result = -1;
-            uint8_t packet[2];
-            int r;
-            int cmmnd_ctr;
+        private param_query(loc: number): number{
+            let result = -1;
+            let r;
+            let cmmnd_ctr;
 
             do {
                 cmmnd_ctr = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
 
-                packet[0] = RegisterAddress.COMMAND;
-                packet[1] = loc | (0B01 << 6);
+                this.writeBuf = pins.createBuffer(2);
+                this.writeBuf[0] = RegisterAddress.COMMAND;
+                this.writeBuf[1] = loc | (0B01 << 6);
 
-                this.write_data(UnitAddress.DEVICE_ADDRESS, packet, sizeof(packet));
+                this.write_data(2);
 
                 r = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
             } while (r > cmmnd_ctr);
@@ -206,26 +217,33 @@ namespace sensoren {
             result = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_1, 1);
 
             return result;
-        }*/
+        }
 
         /**
          Sends command to the command register
         */
-        /*void this.send_command(uint8_t code) {
-            uint8_t packet[2];
-            int r;
-            int cmmnd_ctr;
+        send_command(code: number) {    //check
+            let packet: Buffer = pins.createBuffer(2);
+            let r;
+            let cmmnd_ctr;
             do {
                 cmmnd_ctr = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
 
-                packet[0] = RegisterAddress.COMMAND;
-                packet[1] = code;
+                //packet[0] = RegisterAddress.COMMAND;
+                //packet[1] = code;
+                this.writeBuf= pins.createBuffer(2);
+                this.writeBuf[0] = RegisterAddress.COMMAND;
+                this.writeBuf[1] = code;
+                //serial.writeLine("0 und " + this.writeBuf[0]);
+                //serial.writeLine("1 und " + this.writeBuf[1]);
 
-                this.write_data(UnitAddress.DEVICE_ADDRESS, packet, sizeof(packet));
+
+                this.write_data(2);
 
                 r = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.RESPONSE_0, 1);
             } while (r > cmmnd_ctr);
-        }*/
+            
+        }
 
         /**
          Returns int given a byte array
@@ -233,7 +251,7 @@ namespace sensoren {
         /*get_int_from_bytes(uint8_t * data, size_t len): number{
             int result = 0;
             int shift = 8 * len;
-
+            
             for (int i = 0; i < len; i++) {
                 shift -= 8;
                 result |= ((data[i] << shift) & (0xFF << shift));
@@ -242,16 +260,14 @@ namespace sensoren {
             return result;
         }*/
 
-
         init(): boolean {
-            //Wire.begin();
-            // Wire.setClock(400000);
-            if (this.ReadByte(0x00) != 0x51) {
+
+            if (this.ReadByte(0x00) != 0x51) {  //Device ID, 0x51 if Si1151
                 return false;
             }
-            /*this.send_command(CommandCodes.START);
+            this.send_command(CommandCodes.START);
 
-            this.param_set(ParameterAddress.CHAN_LIST, 0B000010);
+            this.param_set(ParameterAddress.CHAN_LIST, 0B000010);   //channel1 enabled
 
             this.param_set(ParameterAddress.MEASRATE_H, 0);
             this.param_set(ParameterAddress.MEASRATE_L, 1);  // 1 for a base period of 800 us
@@ -261,54 +277,114 @@ namespace sensoren {
             this.param_set(ParameterAddress.THRESHOLD0_L, 200);
             this.param_set(ParameterAddress.THRESHOLD0_H, 0);
 
-            Wire.beginTransmission(UnitAddress.DEVICE_ADDRESS);
-            Wire.write(RegisterAddress.IRQ_ENABLE);
-            Wire.write(0B000010);
-            Wire.endTransmission();
+            this.writeBuf = pins.createBuffer(2);
+            this.writeBuf[0] = RegisterAddress.IRQ_ENABLE;
+            //this.write_data(1);
+            this.writeBuf[1] = 0B000010;
+            this.write_data(2);
 
-            this.conf[0] = 0B00000000;
-            this.conf[1] = 0B00000010,
-                this.conf[2] = 0B00000001;
-            this.conf[3] = 0B11000001;
+            this.conf = pins.createBuffer(4);
+
+            //this.conf[0] = 0B00000000;
+            //this.conf[1] = 0B00000010,
+
+            //777
+            //this.conf[2] = 0B00000001;      //Arduino
+            //this.conf[2] = 0B01111000;      //Raspy
+            //this.conf[3] = 0B11000001;      //Arduino
+            //this.conf[3] = 0B11000000;      //Raspy
+
+            this.conf[0] = 15;
+            this.conf[1] = 0;
+            this.conf[2] = 0;
+            this.conf[3] = 0;
+
             this.config_channel(1);
 
-            this.conf[0] = 0B00000000;
+            /*this.conf[0] = 0B00000000;
             this.conf[1] = 0B00000010,
-                this.conf[2] = 0B00000001;
-            this.conf[3] = 0B11000001;
-            this.config_channel(3);*/
+            this.conf[2] = 0B01111000;
+            this.conf[3] = 0B11000000;
+            this.config_channel(1);*/
+
+            basic.pause(100);
+            let read_register;
+            let adr;
+
+            /*adr = 0x01;
+            read_register = this.param_query(adr);
+            serial.writeLine("read register adr: " + adr + ", data: " + read_register);
+
+            adr = RegisterAddress.IRQ_ENABLE; //0x0F
+            read_register = this.read_register(0x53,adr,1);
+            serial.writeLine("read register adr: " + adr + ", data: " + read_register);*/
 
             return true;
 
         }
 
-
-        /*ReadHalfWord(): number {
+        ReadHalfWord(): number {
             this.send_command(CommandCodes.FORCE);
-            uint8_t data[3];
+            let data: Buffer = pins.createBuffer(3);
             data[0] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_0, 1);
             data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
             // Si115X::send_command(Si115X::PAUSE);
             // data[3] = data[0] * 256 + data[1];
-            return data[0] * 256 + data[1]; //* 256 + data[1];
-        }*/
+            return Math.round(data[0] * 256 + data[1]); //* 256 + data[1];
+        }
 
-        /*ReadHalfWord_UV(): number {
+        ReadHalfWord_UV(): number {
             this.send_command(CommandCodes.FORCE);
-            uint8_t data[3];
+            let data: Buffer = pins.createBuffer(3);
             data[0] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_0, 1);
             data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
-            return ((data[0] * 256 + data[1]) / 3) * 0.0012;
-        }*/
+            return Math.round(((data[0] * 256 + data[1]) / 3) * 0.0012*100)/100;
+        }
 
-        /*ReadHalfWord_VISIBLE() {
+        ReadHalfWord_VISIBLE(): number {
             this.send_command(CommandCodes.FORCE);
-            uint8_t data[3];
+            let data: Buffer = pins.createBuffer(3);
             data[0] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_0, 1);
             data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
-            return (data[0] * 256 + data[1]) / 3;
-        }*/
+            //serial.writeLine("RegisterAdress.Hostout0 " + RegisterAddress.HOSTOUT_0);
+            //serial.writeLine("data0 " + data[0]);
+            //serial.writeLine("data1 " + data[1]);
+            //serial.writeLine("return " + (data[0] * 256 + data[1]) / 3);
+            
+            return Math.round((data[0] * 256 + data[1]) / 3);
 
+        }
+
+        /*ReadHalfWord(): number {
+            this.send_command(CommandCodes.FORCE);
+            let data: Buffer = pins.createBuffer(3);
+            data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
+            data[2] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_2, 1);
+            // Si115X::send_command(Si115X::PAUSE);
+            // data[3] = data[0] * 256 + data[1];
+            return data[2] * 256 + data[1]; //* 256 + data[1];
+        }
+
+        ReadHalfWord_UV(): number {
+            this.send_command(CommandCodes.FORCE);
+            let data: Buffer = pins.createBuffer(3);
+            data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
+            data[2] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_2, 1);
+            return ((data[2] * 256 + data[1]) / 3) * 0.0012;
+        }
+
+        ReadHalfWord_VISIBLE(): number {
+            this.send_command(CommandCodes.FORCE);
+            let data: Buffer = pins.createBuffer(3);
+            data[0] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_0, 1);
+            data[1] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_1, 1);
+            data[2] = this.read_register(UnitAddress.DEVICE_ADDRESS, RegisterAddress.HOSTOUT_2, 1);
+            //serial.writeLine("RegisterAdress.Hostout0 " + RegisterAddress.HOSTOUT_0);
+            //serial.writeLine("return " + (data[0] * 256 + data[1]) / 3);
+            //return (data[2] * 256 + data[1]) / 3;
+           
+            return Math.round((data[0] * 256 + data[1]) / 3 ); 
+        }*/
 
         private ReadByte(Reg: number): number {
             let buf: Buffer = pins.createBuffer(1);

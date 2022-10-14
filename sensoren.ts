@@ -218,7 +218,9 @@ namespace sensoren {
     * init Grove Sunlight module
     * 
     */
+    //% group="SunlightSensor 101020089"
     //% block="init sunlight sensor"
+    //% subcategory="Optische Sensoren"
     export function initSunlight(): string {
         //if (!sgp30) {
         if (si1151.init())
@@ -226,5 +228,38 @@ namespace sensoren {
             return "Yes";
         }
         return "No";
+    }
+
+    /**
+    * get halfword sunlight
+    * 
+    */
+    //% group="SunlightSensor 101020089"
+    //% block="gib UV index [ ]"
+    //% subcategory="Optische Sensoren"
+    export function getHalfWordUV(): number {
+        return si1151.ReadHalfWord_UV();
+    }
+
+    /**
+    * get halfword sunlight
+    * 
+    */
+    //% group="SunlightSensor 101020089"
+    //% block="gib sichtbares Licht [lm]"
+    //% subcategory="Optische Sensoren"
+    export function getHalfWord_Visible(): number {
+        return si1151.ReadHalfWord_VISIBLE();
+    }
+
+    /**
+    * get halfword sunlight
+    * 
+    */
+    //% group="SunlightSensor 101020089"
+    //% block="gib IR [lm]"
+    //% subcategory="Optische Sensoren"
+    export function getHalfWordXXX(): number {
+        return si1151.ReadHalfWord();
     }
 }
